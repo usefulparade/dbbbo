@@ -10,7 +10,7 @@ var newRacers;
 
 var songStage;
 
-var seriously, src, blur, grain, dither, kal, glitch;
+var seriously, src, blur, grain, dither, kal, glitch, vignette, expose, hueSat;
 
 var speed, angle, angleVec, angleNoise;
 
@@ -18,8 +18,17 @@ var song;
 
 var fft;
 
+var font;
+
+var dbboPos;
+var snaxOpacity, bgOpacity;
+var snaxLetters;
+
+var colors = [];
+
 function preload(){
 
+    font = loadFont('summer76font.ttf');
     song = loadSound('TRIPLExSNAXXX-DBBBO.wav');
 }
 
@@ -46,21 +55,42 @@ function setup(){
     newRacers = false;
     songStage = 0;
 
+    bgOpacity = 255;
+    snaxOpacity = 0;
+    dbbboPos = new p5.Vector(220, 30);
     // song.addCue(7.7, addRacers);
     // song.play();
     song.playMode('restart');
     fft = new p5.FFT();
 
-
+    snaxLetters = ['T', 'R', 'I', 'P', 'L', 'E', 'S', 'N', 'A', 'X', 'X', 'X'];
     applySeriously();
 }
 
 function draw(){
     if (songStage == 2){
-        background(noise(racers[0].noiseOffX)*255, noise(racers[0].noiseOffY)*255, noise(racers[1].noiseOffX)*255);
+        // colors[0] = color(noise(racers[0].noiseOffX)*155, noise(racers[0].noiseOffY)*155, noise(racers[1].noiseOffX)*55);
+        // colors[1] = color(0 + noise(racers[1].noiseOffX)*255, 0 + noise(racers[2].noiseOffY)*255, 0 + noise(racers[1].noiseOffY)*255);
+        // background(0);
+        // for (j=0;j<width;j+=2){
+        //     push();
+        //         stroke(lerpColor(colors[0], colors[1], map(j, 0, width, 0, 1)));
+        //         strokeWeight(2);
+        //         line(j, 0, j, height);
+        //     pop();
+        // }
+        if (bgOpacity > 0){
+            bgOpacity -= 1;
+        }
+        
     } else {
-        background(175);
+        if (bgOpacity < 255){
+            bgOpacity += 1;
+        }
+        
     }
+
+    background(175, bgOpacity);
 
     angleJitter();
 
@@ -71,11 +101,12 @@ function draw(){
     if (src != null){
         src.update();
         grain.time = frameCount;
-        glitch.time = frameCount;
+        glitch.time = frameCount*0.1;
+        expose.exposure = noise(racers[0].noiseOffX)*0.01;
     }
-    // console.log(racers.length);
     
-    
+    beginningCard();
+    endCard();
 
 }
 
@@ -122,6 +153,7 @@ function Racer(_type){
         }
         
     };
+
     this.init();
     this.offset = this.baseOffset;
     this.tail = [];
@@ -142,7 +174,7 @@ function Racer(_type){
                 this.lastPos = this.pos;
 
                 if (songStage == 0) {
-                    this.target = new p5.Vector(200, height-200);
+                    this.target = new p5.Vector(200, height-150);
                     this.target.add(this.offset);
                     this.noiseAndSin = new p5.Vector((sin(this.counter*0.01)*100) + (noise(this.noiseOffX)*10), (cos(this.counter*0.01)*100) + (noise(this.noiseOffY)*10));
                     this.target.add(this.noiseAndSin);
@@ -161,6 +193,7 @@ function Racer(_type){
                     this.noiseAndSin = new p5.Vector(((noise(this.noiseOffX)-0.5)*40), (sin(this.counter*0.01)*3) + ((noise(this.noiseOffY)-0.5)*4));
                     this.pos.add(this.noiseAndSin);
                 } else if (songStage == 2){
+                    // kal.segments += 0.0001;
                     // this.target = new p5.Vector(map(noise(this.noiseOffX), 0, 1, 0, width), map(noise(this.noiseOffY), 0, 1, 0, height));
                     this.lissajous = new p5.Vector(2*cos(this.counter*0.1 + QUARTER_PI), this.type*sin(this.counter*0.3));
                     this.k = this.type+1;
@@ -176,7 +209,7 @@ function Racer(_type){
                     // this.noiseAndSin = new p5.Vector(((noise(this.noiseOffX)-0.5)*40), (sin(this.counter*0.01)*3) + ((noise(this.noiseOffY)-0.5)*4));
                     // this.pos.add(this.noiseAndSin);
                 } else if (songStage == 3){
-                    this.target = new p5.Vector(width - 200, height*0.5);
+                    this.target = new p5.Vector(width*0.5, height*0.5);
                     this.target.add(this.endOffset);
                     if (this.type % 2){
                         this.noiseAndSin = new p5.Vector((sin(this.counter*0.01)*100) + (noise(this.noiseOffX)*10), (sin(this.counter*0.01)*60) + (noise(this.noiseOffY)*10));
@@ -200,7 +233,8 @@ function Racer(_type){
             if (songStage != 2){
                 noFill();
             } else {
-                fill(this.col);
+                noFill();
+                // fill(this.col);
             }
             stroke(this.col);
             strokeWeight(10);
@@ -209,9 +243,8 @@ function Racer(_type){
             } else {
                 
             }
-            
             for (i=0;i<this.tail.length-1;i+=1){
-                if (songStage == 1){
+                if (songStage == 1 || songStage == 2){
                     this.tail[i+1].add(angleVec);
                 }
                 
@@ -246,8 +279,12 @@ function Racer(_type){
 }
 
 function angleJitter(){
-    angle = PI + ((noise(angleNoise)-0.5)*PI);
-    // console.log(angle);
+
+    if (songStage != 2){
+        angle = PI + ((noise(angleNoise)-0.5)*PI);
+    } else {
+        angle = PI + ((noise(angleNoise)-0.5)*TWO_PI*2);
+    }
     angleVec = new p5.Vector(cos(angle), sin(angle));
     angleVec.mult(speed);
     angleNoise += random(0.001, 0.005);
@@ -255,12 +292,13 @@ function angleJitter(){
 }
 
 function keyPressed(){
-    // console.log('up');
     if (keyCode == UP_ARROW){
-        kal.segments++;
+        kal.segments = 1000;
+        console.log(kal.segments);
         
     } else if (keyCode == DOWN_ARROW){
-        kal.segments--;
+        kal.segments = 0;
+        console.log(kal.segments);
     }
 
     if (key == 'x'){
@@ -297,6 +335,86 @@ function addRacers(){
 
 }
 
+function beginningCard(){
+    push();
+        if (songStage > 0){
+            dbbboPos.add(angleVec);
+        }
+
+        translate(dbbboPos.x, dbbboPos.y);
+        rotate(HALF_PI);
+        textAlign(LEFT, CENTER);
+        textFont(font);
+        textSize(200);
+        noStroke();
+        fill(0);
+        
+        // text("D", -10, 0);
+        // text("B", 120, 0);
+        // text("B", 240, 0);
+        // text("B", 360, 0);
+        text("DBBB", -10, 0);
+    pop();
+
+    push();
+        if (songStage > 0){
+            dbbboPos.add(angleVec);
+        }
+        translate(dbbboPos.x, dbbboPos.y);
+        // rotate(HALF_PI);
+        textAlign(LEFT, CENTER);
+        textFont(font);
+        textSize(36);
+        noStroke();
+        fill(0);
+        text("click", 200, 240);
+        text("anywhere", 200, 300);
+        text("to start", 200, 360);
+    pop();
+}
+
+function endCard(){
+    push();
+        if (songStage < 3){
+            snaxOpacity = 0;
+        } else {
+            if (snaxOpacity < 255){
+                snaxOpacity += 1;
+            }
+        }
+
+        translate(width*0.5, 90);
+        rotate(HALF_PI);
+        textAlign(CENTER, CENTER);
+        textFont(font);
+        textSize(200);
+        noStroke();
+        fill(0, snaxOpacity);
+        // text("TRIPLE", 0, 0);
+        // text("SNAXXX", 0, 200);
+        for (i=0;i<6;i++){
+            text(snaxLetters[i], i*120, -260);
+            text(snaxLetters[i+6], i*120, 250);
+        }
+    pop();
+
+    push();
+
+        translate(width*0.5, 0);
+        // rotate(HALF_PI);
+        textAlign(CENTER, CENTER);
+        textFont(font);
+        textSize(24);
+        noStroke();
+        fill(0, snaxOpacity);
+        text("click", 0, 200);
+        text("anywhere", 0, 300);
+
+        text("to race", 0, height-300);
+        text("again", 0, height-200);
+    pop();
+}
+
 function hi(){
     console.log('hi');
 }
@@ -313,7 +431,7 @@ function applySeriously(){
     // blur.source = src;
     // target.source = blur;
 
-    dither = seriously.effect('dither');
+    
     // dither.source = src;
     // target.source = dither;
 
@@ -326,14 +444,38 @@ function applySeriously(){
     // target.source = kal;
     seriously.go();
 
+    hueSat = seriously.effect('hue-saturation');
+    hueSat.hue = 0;
+    hueSat.saturation = 0.1;
+    hueSat.source = kal;
+
+    expose = seriously.effect('exposure');
+    expose.exposure = 0.1;
+    expose.source = hueSat;
+
     grain = seriously.effect('filmgrain');
     grain.amount = 0.04;
-    grain.source = kal;
-    target.source = grain;
+    grain.source = expose;
+
+    vignette = seriously.effect('vignette');
+    vignette.amount = 0.5;
+    vignette.source = expose;
+    // target.source = grain;
 
     glitch = seriously.effect('tvglitch');
-    // glitch.source = grain;
+    glitch.distortion = 0.005;
+    glitch.verticalSync = 0;
+    glitch.frameShape = 2;
+    glitch.scanlines = 0.01;
+    glitch.lineSync = 0.001;
+    glitch.bars = 0.01;
+    glitch.source = vignette;
     // target.source = glitch;
+
+    // dither = seriously.effect('dither');
+    // dither.source = glitch;
+
+    target.source = glitch;
 
     console.log(src);
 
