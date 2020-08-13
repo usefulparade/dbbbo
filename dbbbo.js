@@ -10,7 +10,7 @@ var newRacers;
 
 var songStage;
 
-var seriously, src, blur, grain, dither, kal, glitch, vignette, expose, hueSat;
+var seriously, src, blur, grain, dither, kal, glitch, vignette, expose, hueSat, shake, reformat;
 
 var speed, angle, angleVec, angleNoise;
 
@@ -26,15 +26,17 @@ var snaxLetters;
 
 var colors = [];
 
-function preload(){
+var movieMode, blurMode;
 
+function preload(){
     font = loadFont('summer76font.ttf');
     song = loadSound('TRIPLExSNAXXX-DBBBO.wav');
 }
 
 function setup(){
+
     console.log('hi from p5');
-    canv = createCanvas(1000, 800);
+    canv = createCanvas(1000, 666);
     canv.id('p5Canv');
     canvParent = select('#canvParent');
     canv.parent(canvParent);
@@ -56,39 +58,34 @@ function setup(){
     songStage = 0;
 
     bgOpacity = 255;
+    blurMode = false;
+
     snaxOpacity = 0;
     dbbboPos = new p5.Vector(220, 30);
-    // song.addCue(7.7, addRacers);
+    // song.addCue(11, addRacers);
     // song.play();
     song.playMode('restart');
     fft = new p5.FFT();
 
     snaxLetters = ['T', 'R', 'I', 'P', 'L', 'E', 'S', 'N', 'A', 'X', 'X', 'X'];
+
+    movieMode = true;
+
     applySeriously();
+
 }
 
 function draw(){
     if (songStage == 2){
-        // colors[0] = color(noise(racers[0].noiseOffX)*155, noise(racers[0].noiseOffY)*155, noise(racers[1].noiseOffX)*55);
-        // colors[1] = color(0 + noise(racers[1].noiseOffX)*255, 0 + noise(racers[2].noiseOffY)*255, 0 + noise(racers[1].noiseOffY)*255);
-        // background(0);
-        // for (j=0;j<width;j+=2){
-        //     push();
-        //         stroke(lerpColor(colors[0], colors[1], map(j, 0, width, 0, 1)));
-        //         strokeWeight(2);
-        //         line(j, 0, j, height);
-        //     pop();
-        // }
         if (bgOpacity > 0){
             bgOpacity -= 1;
         }
-        
     } else {
-        if (bgOpacity < 255){
-            bgOpacity += 1;
-        }
+        makeBlurMode();
         
     }
+
+    songCues();
 
     background(175, bgOpacity);
 
@@ -174,6 +171,7 @@ function Racer(_type){
                 this.lastPos = this.pos;
 
                 if (songStage == 0) {
+                    speed = 0;
                     this.target = new p5.Vector(200, height-150);
                     this.target.add(this.offset);
                     this.noiseAndSin = new p5.Vector((sin(this.counter*0.01)*100) + (noise(this.noiseOffX)*10), (cos(this.counter*0.01)*100) + (noise(this.noiseOffY)*10));
@@ -185,6 +183,7 @@ function Racer(_type){
                     // this.pos.add(this.noiseAndSin);
 
                 } else if (songStage == 1){
+                    speed = 7;
                     this.target = new p5.Vector(mouseX, mouseY);
                     this.target.add(this.offset);
                     this.buffer = new p5.Vector(((this.target.x-this.lastPos.x)), ((this.target.y-this.lastPos.y)));
@@ -193,6 +192,7 @@ function Racer(_type){
                     this.noiseAndSin = new p5.Vector(((noise(this.noiseOffX)-0.5)*40), (sin(this.counter*0.01)*3) + ((noise(this.noiseOffY)-0.5)*4));
                     this.pos.add(this.noiseAndSin);
                 } else if (songStage == 2){
+                    speed = 7;
                     // kal.segments += 0.0001;
                     // this.target = new p5.Vector(map(noise(this.noiseOffX), 0, 1, 0, width), map(noise(this.noiseOffY), 0, 1, 0, height));
                     this.lissajous = new p5.Vector(2*cos(this.counter*0.1 + QUARTER_PI), this.type*sin(this.counter*0.3));
@@ -209,6 +209,7 @@ function Racer(_type){
                     // this.noiseAndSin = new p5.Vector(((noise(this.noiseOffX)-0.5)*40), (sin(this.counter*0.01)*3) + ((noise(this.noiseOffY)-0.5)*4));
                     // this.pos.add(this.noiseAndSin);
                 } else if (songStage == 3){
+                    speed = 0;
                     this.target = new p5.Vector(width*0.5, height*0.5);
                     this.target.add(this.endOffset);
                     if (this.type % 2){
@@ -220,6 +221,11 @@ function Racer(_type){
                     this.buffer = new p5.Vector(((this.target.x-this.lastPos.x)), ((this.target.y-this.lastPos.y)));
                     this.buffer.mult(0.1);
                     this.pos = new p5.Vector(this.lastPos.x + this.buffer.x, this.lastPos.y + this.buffer.y);
+                    
+                    if (this.target.x > width*0.5){
+                        this.target.add(new p5.Vector(-1, 0));
+                    }
+
                     
                 }
 
@@ -244,8 +250,8 @@ function Racer(_type){
                 
             }
             for (i=0;i<this.tail.length-1;i+=1){
-                if (songStage == 1 || songStage == 2){
-                    this.tail[i+1].add(angleVec);
+                if (songStage != 0){
+                    this.tail[i].add(angleVec);
                 }
                 
                 if (songStage == 1 || songStage == 2){
@@ -296,9 +302,17 @@ function keyPressed(){
         kal.segments = 1000;
         console.log(kal.segments);
         
-    } else if (keyCode == DOWN_ARROW){
+    }
+    if (keyCode == DOWN_ARROW){
         kal.segments = 0;
         console.log(kal.segments);
+    }
+
+    if (keyCode == RIGHT_ARROW){
+        blurMode = true;
+    } 
+    if (keyCode == LEFT_ARROW){
+        blurMode = false;
     }
 
     if (key == 'x'){
@@ -307,6 +321,12 @@ function keyPressed(){
         song.play();
     } else if (key == 'c'){
         racers.push(new Racer(racers.length));
+    } else if (key == '.'){
+        song.jump(song.currentTime() + 20);
+    } else if (key == ','){
+        song.jump(song.currentTime() - 20);
+    }  else if (key == 'b'){
+        console.log(song.currentTime());
     }
 
     if (key == '1' || key == '2' || key == '3' || key == '4'){
@@ -316,6 +336,18 @@ function keyPressed(){
 }
 
 function mousePressed(){
+    
+
+    if (songStage == 0){
+        for (i=0;i<racers.length;i++){
+            racers[i].tail.shift();
+        }  
+
+         if (song.currentTime() == 0){
+            song.play();
+        }
+    }
+
     songStage = (songStage + 1) % 4;
 }
 
@@ -345,7 +377,7 @@ function beginningCard(){
         rotate(HALF_PI);
         textAlign(LEFT, CENTER);
         textFont(font);
-        textSize(200);
+        textSize(150);
         noStroke();
         fill(0);
         
@@ -356,21 +388,23 @@ function beginningCard(){
         text("DBBB", -10, 0);
     pop();
 
-    push();
-        if (songStage > 0){
-            dbbboPos.add(angleVec);
-        }
-        translate(dbbboPos.x, dbbboPos.y);
-        // rotate(HALF_PI);
-        textAlign(LEFT, CENTER);
-        textFont(font);
-        textSize(36);
-        noStroke();
-        fill(0);
-        text("click", 200, 240);
-        text("anywhere", 200, 300);
-        text("to start", 200, 360);
-    pop();
+    if (!movieMode){
+        push();
+            if (songStage > 0){
+                dbbboPos.add(angleVec);
+            }
+            translate(dbbboPos.x, dbbboPos.y);
+            // rotate(HALF_PI);
+            textAlign(LEFT, CENTER);
+            textFont(font);
+            textSize(36);
+            noStroke();
+            fill(0);
+            text("click", 200, 240);
+            text("anywhere", 200, 300);
+            text("to start", 200, 360);
+        pop();
+    }
 }
 
 function endCard(){
@@ -383,40 +417,93 @@ function endCard(){
             }
         }
 
-        translate(width*0.5, 90);
+        translate(width*0.5, 120);
         rotate(HALF_PI);
         textAlign(CENTER, CENTER);
         textFont(font);
-        textSize(200);
+        textSize(150);
         noStroke();
         fill(0, snaxOpacity);
         // text("TRIPLE", 0, 0);
         // text("SNAXXX", 0, 200);
         for (i=0;i<6;i++){
-            text(snaxLetters[i], i*120, -260);
-            text(snaxLetters[i+6], i*120, 250);
+            text(snaxLetters[i], i*82, -260);
+            text(snaxLetters[i+6], i*82, 250);
         }
     pop();
 
-    push();
+    if (!movieMode){
+        push();
 
-        translate(width*0.5, 0);
-        // rotate(HALF_PI);
-        textAlign(CENTER, CENTER);
-        textFont(font);
-        textSize(24);
-        noStroke();
-        fill(0, snaxOpacity);
-        text("click", 0, 200);
-        text("anywhere", 0, 300);
+            translate(width*0.5, 0);
+            // rotate(HALF_PI);
+            textAlign(CENTER, CENTER);
+            textFont(font);
+            textSize(24);
+            noStroke();
+            fill(0, snaxOpacity);
+            text("click", 0, 150);
+            text("anywhere", 0, 200);
 
-        text("to race", 0, height-300);
-        text("again", 0, height-200);
-    pop();
+            text("to race", 0, height-200);
+            text("again", 0, height-150);
+        pop();
+    }
+}
+
+function windowResized(){
+    // if (windowWidth > 1000){
+    //     resizeCanvas(1000, 666);
+    // } else {
+    //     resizeCanvas(windowWidth, windowWidth*0.66);
+    //     windowScale = windowWidth/1000;
+    // }
 }
 
 function hi(){
     console.log('hi');
+}
+
+function songCues(){
+    if (song.currentTime() > 11 && song.currentTime() < 15){
+        if (racers.length < 6){
+            addRacers();
+        }
+    } 
+    if (song.currentTime() > 151 && song.currentTime() < 156){
+        if (songStage != 2){
+            songStage = 2;
+        }
+    }
+    if (song.currentTime() > 198 && song.currentTime() < 204){
+        if (songStage != 1){
+            songStage = 1;
+        }
+    }
+    if (song.currentTime() > 238){
+        if (songStage != 3){
+            songStage = 3;
+        }
+    }
+}
+
+function makeBlurMode(){
+    if (!blurMode){
+        if (bgOpacity < 255){
+            bgOpacity += 1;
+        }
+        expose.exposure = 0.1;
+        glitch.distortion = 0.005;
+        vignette.amount = 0.6;
+
+    } else {
+        if (bgOpacity > 100){
+            bgOpacity -=5;
+        }
+        expose.exposure = 8;
+        glitch.distortion = 0.006;
+        vignette.amount = 0.7;
+    }
 }
 
 function applySeriously(){
@@ -427,15 +514,6 @@ function applySeriously(){
     var target = seriously.target('#seriouslyCanv');
 
     var blur = seriously.effect('blur');
-    // blur.amount = 0.02;
-    // blur.source = src;
-    // target.source = blur;
-
-    
-    // dither.source = src;
-    // target.source = dither;
-
-   
 
     kal = seriously.effect('kaleidoscope');
     // kal.sections = 2;
@@ -444,23 +522,25 @@ function applySeriously(){
     // target.source = kal;
     seriously.go();
 
-    hueSat = seriously.effect('hue-saturation');
-    hueSat.hue = 0;
-    hueSat.saturation = 0.1;
-    hueSat.source = kal;
+    // hueSat = seriously.effect('hue-saturation');
+    // hueSat.hue = 0;
+    // hueSat.saturation = 0.1;
+    // hueSat.source = kal;
 
     expose = seriously.effect('exposure');
     expose.exposure = 0.1;
-    expose.source = hueSat;
+    expose.source = kal;
 
     grain = seriously.effect('filmgrain');
     grain.amount = 0.04;
     grain.source = expose;
 
+    shake = seriously.transform('camerashake');
+    shake.source = grain;
+
     vignette = seriously.effect('vignette');
-    vignette.amount = 0.5;
-    vignette.source = expose;
-    // target.source = grain;
+    vignette.amount = 0.6;
+    vignette.source = shake;
 
     glitch = seriously.effect('tvglitch');
     glitch.distortion = 0.005;
@@ -468,12 +548,8 @@ function applySeriously(){
     glitch.frameShape = 2;
     glitch.scanlines = 0.01;
     glitch.lineSync = 0.001;
-    glitch.bars = 0.01;
+    glitch.bars = 0.015;
     glitch.source = vignette;
-    // target.source = glitch;
-
-    // dither = seriously.effect('dither');
-    // dither.source = glitch;
 
     target.source = glitch;
 

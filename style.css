@@ -1,6 +1,7 @@
 body {
     display: block;
     position: relative;
+    background-color: rgb(20,20,20);
     margin: 0px;
     padding: 0px;
     height: 100%;
@@ -8,7 +9,30 @@ body {
     cursor: crosshair;
 }
 
-.canvas {
+canvas {
+    display: block;
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 10px solid white;
+    box-sizing: border-box;
+}
+
+canvas#seriouslyCanv{
+    margin-top: -645px;
+}
+
+canvas#p5Canv{
+    display: block;
+    position: relative;
+    top: 30px;
+    width: 100%;
+    height: 100%;
+}
+
+/* .canvas {
     display: block;
     position: fixed;
     top: 0;
@@ -18,4 +42,16 @@ body {
     padding: 0px;
     height: 90%;
     width: 100%;
+} */
+
+.four-by-three {
+    display: block;
+    position: relative;
+    padding-bottom: 56.25%;
+    width: 1000px;
+    /* max-height: 1000px; */
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 30px;
+    cursor: none;
 }
