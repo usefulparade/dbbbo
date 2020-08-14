@@ -465,24 +465,26 @@ function hi(){
 }
 
 function songCues(){
-    if (song.currentTime() > 11 && song.currentTime() < 15){
-        if (racers.length < 6){
-            addRacers();
+    if (!movieMode){
+        if (song.currentTime() > 11 && song.currentTime() < 15){
+            if (racers.length < 6){
+                addRacers();
+            }
+        } 
+        if (song.currentTime() > 151 && song.currentTime() < 156){
+            if (songStage != 2){
+                songStage = 2;
+            }
         }
-    } 
-    if (song.currentTime() > 151 && song.currentTime() < 156){
-        if (songStage != 2){
-            songStage = 2;
+        if (song.currentTime() > 198 && song.currentTime() < 204){
+            if (songStage != 1){
+                songStage = 1;
+            }
         }
-    }
-    if (song.currentTime() > 198 && song.currentTime() < 204){
-        if (songStage != 1){
-            songStage = 1;
-        }
-    }
-    if (song.currentTime() > 238){
-        if (songStage != 3){
-            songStage = 3;
+        if (song.currentTime() > 238){
+            if (songStage != 3){
+                songStage = 3;
+            }
         }
     }
 }
