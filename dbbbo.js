@@ -27,6 +27,7 @@ var snaxLetters;
 var colors = [];
 
 var movieMode, blurMode;
+var songTime;
 
 function preload(){
     font = loadFont('summer76font.ttf');
@@ -69,7 +70,8 @@ function setup(){
 
     snaxLetters = ['T', 'R', 'I', 'P', 'L', 'E', 'S', 'N', 'A', 'X', 'X', 'X'];
 
-    movieMode = true;
+    movieMode = false;
+    songTime = 0;
 
     applySeriously();
 
@@ -101,6 +103,10 @@ function draw(){
         glitch.time = frameCount*0.1;
         expose.exposure = noise(racers[0].noiseOffX)*0.01;
     }
+    // push();
+    //     textSize(40);
+    //     text(floor(songTime), width/2, height/2);
+    // pop();
     
     beginningCard();
     endCard();
@@ -183,7 +189,7 @@ function Racer(_type){
                     // this.pos.add(this.noiseAndSin);
 
                 } else if (songStage == 1){
-                    speed = 7;
+                    speed = 15;
                     this.target = new p5.Vector(mouseX, mouseY);
                     this.target.add(this.offset);
                     this.buffer = new p5.Vector(((this.target.x-this.lastPos.x)), ((this.target.y-this.lastPos.y)));
@@ -465,28 +471,41 @@ function hi(){
 }
 
 function songCues(){
+    songTime = song.currentTime();
     if (!movieMode){
-        if (song.currentTime() > 11 && song.currentTime() < 15){
+
+        if (songTime > 81.5 && songTime < 105){
+            blurMode = true;
+        } else if (songTime > 128 && songTime < 151.5){
+            blurMode = true;
+        } else if (songTime > 221){
+            blurMode = true;
+        } else {
+            blurMode = false;
+        }
+
+        if (songTime > 11.5 && songTime < 151.5){
             if (racers.length < 6){
                 addRacers();
             }
-        } 
-        if (song.currentTime() > 151 && song.currentTime() < 156){
+        }else if (songTime > 151.5 && songTime < 198){
             if (songStage != 2){
                 songStage = 2;
             }
-        }
-        if (song.currentTime() > 198 && song.currentTime() < 204){
+        } else if (songTime > 198 && songTime < 239){
             if (songStage != 1){
                 songStage = 1;
             }
-        }
-        if (song.currentTime() > 238){
+        } else if (songTime > 239){
             if (songStage != 3){
                 songStage = 3;
             }
         }
+
+        
     }
+
+    
 }
 
 function makeBlurMode(){
