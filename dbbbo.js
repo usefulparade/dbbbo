@@ -343,18 +343,23 @@ function keyPressed(){
 
 function mousePressed(){
     
+    if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height){
 
-    if (songStage == 0){
-        for (i=0;i<racers.length;i++){
-            racers[i].tail.shift();
-        }  
+        if (songStage == 0){
+            for (i=0;i<racers.length;i++){
+                racers[i].tail.shift();
+            }  
 
-         if (song.currentTime() == 0){
-            song.play();
+            if (song.currentTime() == 0){
+                song.play();
+            }
+
+            songStage = 1;
+
         }
     }
 
-    songStage = (songStage + 1) % 4;
+    // songStage = (songStage + 1) % 4;
 }
 
 function addRacers(){
