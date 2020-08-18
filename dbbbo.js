@@ -189,7 +189,7 @@ function Racer(_type){
                     // this.pos.add(this.noiseAndSin);
 
                 } else if (songStage == 1){
-                    speed = 15;
+                    speed = 7;
                     this.target = new p5.Vector(mouseX, mouseY);
                     this.target.add(this.offset);
                     this.buffer = new p5.Vector(((this.target.x-this.lastPos.x)), ((this.target.y-this.lastPos.y)));
