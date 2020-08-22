@@ -105,7 +105,7 @@ function draw(){
     }
     // push();
     //     textSize(40);
-    //     text(floor(songTime), width/2, height/2);
+    //     text(songTime, width/2, height/2);
     // pop();
     
     beginningCard();
@@ -189,7 +189,7 @@ function Racer(_type){
                     // this.pos.add(this.noiseAndSin);
 
                 } else if (songStage == 1){
-                    speed = 7;
+                    speed = 15;
                     this.target = new p5.Vector(mouseX, mouseY);
                     this.target.add(this.offset);
                     this.buffer = new p5.Vector(((this.target.x-this.lastPos.x)), ((this.target.y-this.lastPos.y)));
@@ -489,11 +489,11 @@ function songCues(){
             blurMode = false;
         }
 
-        if (songTime > 11.5 && songTime < 151.5){
+        if (songTime > 11.5 && songTime < 151.2){
             if (racers.length < 6){
                 addRacers();
             }
-        }else if (songTime > 151.5 && songTime < 198){
+        }else if (songTime > 151.2 && songTime < 198){
             if (songStage != 2){
                 songStage = 2;
             }
