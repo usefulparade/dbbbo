@@ -41,6 +41,7 @@ function setup(){
     canv.id('p5Canv');
     canvParent = select('#canvParent');
     canv.parent(canvParent);
+    pixelDensity(1);
 
     speed = 7;
     angle = PI;
