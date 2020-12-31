@@ -1,3 +1,6 @@
+html {
+    overflow: scroll;
+}
 @font-face {
     font-family: '76';
     src: url('summer76font.ttf') format('truetype');
@@ -9,7 +12,7 @@ body {
     background-color: rgb(20,20,20);
     margin: 0px;
     padding: 0px;
-    max-height: 800px;
+    height: 750px;
     width: 100%;
     cursor: crosshair;
     font-family: '76', Courier, monospace;
